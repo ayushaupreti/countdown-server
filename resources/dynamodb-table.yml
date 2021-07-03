@@ -1,0 +1,39 @@
+Resources:
+  EventTable:
+    Type: 'AWS::DynamoDB::Table'
+    DeletionPolicy: Retain
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: userId
+          AttributeType: S
+        -
+          AttributeName: eventId
+          AttributeType: S
+        -
+          AttributeName: friendlyEventId
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: userId
+          KeyType: HASH
+        -
+          AttributeName: eventId
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+      TableName: ${self:service}-${opt:stage, self:provider.stage}-EVENT_TABLE
+      GlobalSecondaryIndexes:
+        - IndexName: FriendlyEventId
+          KeySchema:
+          - AttributeName: friendlyEventId
+            KeyType: HASH
+          Projection:
+            NonKeyAttributes:
+            - eventTitle
+            - eventDate
+            ProjectionType: INCLUDE
+          ProvisionedThroughput:
+            ReadCapacityUnits: 2
+            WriteCapacityUnits: 2

@@ -1,0 +1,99 @@
+service: countdown-server
+
+plugins:
+  - serverless-bundle
+
+package:
+  individually: true
+  exclude:
+   - readme.md
+   - .gitignore
+   - lambdas/**
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  region: us-east-1
+
+  environment:
+    EVENT_TABLE: { "Ref": "EventTable" }
+    SES_FROM_ADDRESS: no-reply@ayusha.net
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+      Resource: "*"
+
+functions:
+  authorizer_online:
+    handler: lambdas/authorizer/online.handler
+    description: security authorizer for online cognito access token check
+    package:  
+      include:
+        - lambdas/authorizer/online.js
+  
+  preSignUp:
+    handler: lambdas/cognito/pre-signup.handler
+    description: COGNITO - auto confirm user before signup
+    events:
+      - cognitoUserPool:
+          pool: countdown-user-pool
+          trigger: PreSignUp
+
+  defineAuthChallenge:
+    handler: lambdas/cognito/define-auth-challenge.main
+    description: COGNITO - manage flow of custom auth
+    events:
+      - cognitoUserPool:
+          pool: countdown-user-pool
+          trigger: DefineAuthChallenge
+
+  createAuthChallenge:
+    handler: lambdas/cognito/create-auth-challenge.main
+    description: COGNITO - create and email unique OTP
+    events:
+      - cognitoUserPool:
+          pool: countdown-user-pool
+          trigger: CreateAuthChallenge
+
+  verifyAuthChallengeResponse:
+    handler: lambdas/cognito/verify-auth-challenge-response.main
+    description: COGNITO - check if user entered correct OTP
+    events:
+      - cognitoUserPool:
+          pool: countdown-user-pool
+          trigger: VerifyAuthChallengeResponse
+
+  postEvent:
+    handler: lambdas/postEvent.main
+    events:
+      - http:
+          path: /event
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - token
+            allowCredentials: false
+          # authorizer:
+          #   name: authorizer_online
+          #   resultTtlInSeconds: 240
+          #   identitySource: method.request.header.token
+          #   type: token
+    description: adds new event to database
+    package:  
+      include:
+        - postEvent.js
+
+resources:
+  # DynamoDB
+  - ${file(resources/dynamodb-table.yml)}

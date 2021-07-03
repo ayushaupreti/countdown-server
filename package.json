@@ -1,0 +1,24 @@
+{
+  "name": "countdown-server",
+  "version": "1.0.0",
+  "description": "Server-side repository for countdown app",
+  "scripts": {
+    "test": "serverless-bundle test",
+    "lint": "node_modules/.bin/eslint --ext .js ./",
+    "lint:fix": "node_modules/.bin/eslint --ext .js ./ --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayushaupreti/countdown"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-bundle": "^1.4.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.938.0",
+    "crypto-secure-random-digit": "^1.0.9",
+    "uuid": "^8.3.2"
+  }
+}
