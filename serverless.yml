@@ -18,6 +18,7 @@ provider:
 
   environment:
     EVENT_TABLE: { "Ref": "EventTable" }
+    USER_POOL_ID: us-east-1_nMl2Znmzc
     SES_FROM_ADDRESS: no-reply@ayusha.net
 
   iamRoleStatements:
@@ -25,6 +26,9 @@ provider:
       Action:
         - dynamodb:GetItem
         - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+        - ses:SendEmail
       Resource: "*"
 
 functions:
@@ -93,6 +97,60 @@ functions:
     package:  
       include:
         - postEvent.js
+  
+  getAllEvents:
+    handler: lambdas/getAllEvents.main
+    events:
+      - http:
+          path: /events
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - token
+            allowCredentials: false
+          # authorizer:
+          #   name: authorizer_online
+          #   resultTtlInSeconds: 240
+          #   identitySource: method.request.header.token
+          #   type: token
+    description: gets all events a specific user has created
+    package:  
+      include:
+        - getAllEvents.js
+  
+  viewPrivateEvent:
+    handler: lambdas/viewPrivateEvent.main
+    events:
+      - http:
+          path: /event/{eventId}
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - token
+            allowCredentials: false
+          # authorizer:
+          #   name: authorizer_online
+          #   resultTtlInSeconds: 240
+          #   identitySource: method.request.header.token
+          #   type: token
+    description: gets all events a specific user has created
+    package:  
+      include:
+        - viewPrivateEvent.js
 
 resources:
   # DynamoDB
