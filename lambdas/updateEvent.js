@@ -1,21 +1,27 @@
 import { handler } from "../libs/handler-lib";
 import dynamoDb from "../libs/dynamoDB";
-import * as uuid from "uuid";
 
 export const main = handler(async (event, context) => {
     const input = JSON.parse(event.body);
-    const eventId = input.eventId;
+    const eventId = event.pathParameters;
+
     const params = {
         TableName: process.env.EVENT_TABLE,
-        Item: {
-            userId: uuid.v1(),
-            eventId: eventId,
-            eventTitle: input.eventTitle,
-            eventDate: input.eventDate,
-            friendlyEventId: eventId
+        Key: {
+            eventId: eventId
         },
+        ReturnValues: 'ALL_NEW',
+        UpdateExpression: 'set #title = :eventTitle, #date = :eventDate',
+        ExpressionAttributeNames: {
+            '#title': 'eventTitle',
+            '#date': 'eventDate',
+        },
+        ExpressionAttributeValues: {
+            ':eventTitle': input.eventTitle,
+            ':eventDate': input.eventDate,
+        }
     };
 
-    const returnVal = await dynamoDb.put(params);
+    const returnVal = await dynamoDb.update(params);
     return returnVal;
 });

@@ -10,24 +10,18 @@ Resources:
         -
           AttributeName: eventId
           AttributeType: S
-        -
-          AttributeName: friendlyEventId
-          AttributeType: S
       KeySchema:
         -
-          AttributeName: userId
-          KeyType: HASH
-        -
           AttributeName: eventId
-          KeyType: RANGE
+          KeyType: HASH
       ProvisionedThroughput:
         ReadCapacityUnits: 2
         WriteCapacityUnits: 2
       TableName: ${self:service}-${opt:stage, self:provider.stage}-EVENT_TABLE
       GlobalSecondaryIndexes:
-        - IndexName: FriendlyEventId
+        - IndexName: UserId
           KeySchema:
-          - AttributeName: friendlyEventId
+          - AttributeName: userId
             KeyType: HASH
           Projection:
             NonKeyAttributes:

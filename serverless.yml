@@ -28,6 +28,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:Query
+        - dynamodb:DeleteItem
         - ses:SendEmail
       Resource: "*"
 
@@ -88,11 +89,11 @@ functions:
               - X-Amz-User-Agent
               - token
             allowCredentials: false
-          # authorizer:
-          #   name: authorizer_online
-          #   resultTtlInSeconds: 240
-          #   identitySource: method.request.header.token
-          #   type: token
+          authorizer:
+            name: authorizer_online
+            resultTtlInSeconds: 240
+            identitySource: method.request.header.token
+            type: token
     description: adds new event to database
     package:  
       include:
@@ -103,7 +104,7 @@ functions:
     events:
       - http:
           path: /events
-          method: post
+          method: get
           cors:
             origin: '*'
             headers:
@@ -115,22 +116,22 @@ functions:
               - X-Amz-User-Agent
               - token
             allowCredentials: false
-          # authorizer:
-          #   name: authorizer_online
-          #   resultTtlInSeconds: 240
-          #   identitySource: method.request.header.token
-          #   type: token
+          authorizer:
+            name: authorizer_online
+            resultTtlInSeconds: 240
+            identitySource: method.request.header.token
+            type: token
     description: gets all events a specific user has created
     package:  
       include:
         - getAllEvents.js
   
-  viewPrivateEvent:
-    handler: lambdas/viewPrivateEvent.main
+  viewEvent:
+    handler: lambdas/viewEvent.main
     events:
       - http:
           path: /event/{eventId}
-          method: post
+          method: get
           cors:
             origin: '*'
             headers:
@@ -142,15 +143,69 @@ functions:
               - X-Amz-User-Agent
               - token
             allowCredentials: false
-          # authorizer:
-          #   name: authorizer_online
-          #   resultTtlInSeconds: 240
-          #   identitySource: method.request.header.token
-          #   type: token
-    description: gets all events a specific user has created
+          authorizer:
+            name: authorizer_online
+            resultTtlInSeconds: 240
+            identitySource: method.request.header.token
+            type: token
+    description: gets information for one event
     package:  
       include:
-        - viewPrivateEvent.js
+        - viewEvent.js
+  
+  updateEvent:
+    handler: lambdas/updateEvent.main
+    events:
+      - http:
+          path: /event/{eventId}
+          method: put
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - token
+            allowCredentials: false
+          authorizer:
+            name: authorizer_online
+            resultTtlInSeconds: 240
+            identitySource: method.request.header.token
+            type: token
+    description: updates the specified event
+    package:  
+      include:
+        - updateEvent.js
+  
+  deleteEvent:
+    handler: lambdas/deleteEvent.main
+    events:
+      - http:
+          path: /event/{eventId}
+          method: delete
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+              - token
+            allowCredentials: false
+          authorizer:
+            name: authorizer_online
+            resultTtlInSeconds: 240
+            identitySource: method.request.header.token
+            type: token
+    description: deletes the specified event
+    package:  
+      include:
+        - deleteEvent.js
 
 resources:
   # DynamoDB
